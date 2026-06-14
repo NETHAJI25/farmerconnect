@@ -155,7 +155,7 @@ class SettingsScreen extends StatelessWidget {
                 Switch(
                   value: themeProvider.isDarkMode,
                   onChanged: (_) => themeProvider.toggleTheme(),
-                  activeColor: AppTheme.forestGreen,
+                  activeTrackColor: AppTheme.forestGreen,
                 )
               else
                 Icon(Icons.chevron_right, color: AppTheme.textSecondary, size: 20),

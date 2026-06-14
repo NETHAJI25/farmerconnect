@@ -7,7 +7,7 @@ import '../services/app_data.dart';
 import '../theme/app_theme.dart';
 import '../models/product.dart';
 import '../utils/image_constants.dart';
-import '../widgets/lottie_animations.dart';
+
 import 'basket_screen.dart';
 
 class AvailableFarmersScreen extends StatelessWidget {

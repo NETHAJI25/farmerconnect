@@ -5,13 +5,11 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 import '../theme/app_theme.dart';
-import '../models/product.dart';
 import '../services/app_data.dart';
 import '../utils/image_constants.dart';
 import '../widgets/shimmer_loading.dart';
 import 'category_products_screen.dart';
 import 'buy_products_screen.dart';
-import 'available_farmers_screen.dart';
 import 'product_detail_screen.dart';
 
 class HomeScreen extends StatefulWidget {

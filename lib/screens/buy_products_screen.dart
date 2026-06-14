@@ -35,11 +35,6 @@ class _BuyProductsScreenState extends State<BuyProductsScreen> {
     ).toList();
   }
 
-  List<String> get _suggestions {
-    if (searchQuery.isEmpty) return _trendingSearches;
-    return _trendingSearches.where((s) => s.toLowerCase().contains(searchQuery.toLowerCase())).toList();
-  }
-
   @override
   void initState() {
     super.initState();
