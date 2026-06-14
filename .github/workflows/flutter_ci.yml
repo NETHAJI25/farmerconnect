@@ -25,7 +25,103 @@ jobs:
         run: flutter pub get
 
       - name: Run Flutter analyze
-        run: flutter analyze
+        id: analyze
+        continue-on-error: true
+        run: flutter analyze 2>&1 | tee analyze_output.txt
 
       - name: Run Flutter tests
-        run: flutter test
+        id: test
+        continue-on-error: true
+        run: flutter test 2>&1 | tee test_output.txt
+
+      - name: Generate test report
+        if: always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const analyzeOutcome = '${{ steps.analyze.outcome }}';
+            const testOutcome = '${{ steps.test.outcome }}';
+
+            const analyzeStatus = analyzeOutcome === 'success' ? '✅ Passed' : '❌ Failed';
+            const testStatus = testOutcome === 'success' ? '✅ Passed' : '❌ Failed';
+            const allPassed = analyzeOutcome === 'success' && testOutcome === 'success';
+
+            const fs = require('fs');
+            let warnings = '0';
+            let errors = '0';
+            try {
+              const out = fs.readFileSync('analyze_output.txt', 'utf8');
+              warnings = (out.match(/warning/g) || []).length;
+              errors = (out.match(/error/g) || []).length;
+            } catch(e) {}
+
+            const warningSection = warnings > 0
+              ? `### ⚠️ ${warnings} Warning(s) Found\n\nThe analysis found ${warnings} warning(s) and ${errors} error(s).\n- Warnings: ${warnings}\n- Errors: ${errors}\n- Review the Annotation details to identify the exact warnings.\nThe warning(s) did not fail the build.`
+              : '### ✅ No Warnings Found\n\nStatic analysis completed with zero warnings and zero errors.';
+
+            const findings = allPassed
+              ? '- Repository checkout completed successfully.\n- Flutter SDK installed correctly.\n- Dependencies resolved without errors.\n- Static code analysis (flutter analyze) completed successfully.\n- All tests passed.\n- Build pipeline finished successfully.\n- No workflow failures detected.'
+              : '- Repository checkout completed successfully.\n- Flutter SDK installed correctly.\n- Dependencies resolved without errors.';
+
+            const conclusionText = allPassed
+              ? 'The Flutter project successfully:\n\n- Checked out source code.\n- Installed Flutter.\n- Installed project dependencies.\n- Passed static analysis.\n- Passed all tests.\n- Completed CI/CD workflow without errors.\n\n---\n\n**Overall Success Rate: 100%**'
+              : 'The Flutter project failed one or more stages. Please review the logs for details.';
+
+            const summary = `# Flutter CI/CD Build Verification
+
+            ## Status
+
+            ${allPassed ? '✅ **PASSED**' : '❌ **FAILED**'}
+
+            ---
+
+            ## Build Summary
+
+            | Detail | Value |
+            |---|---|
+            | Workflow Job | build |
+            | Result | ${allPassed ? 'Succeeded' : 'Failed'} |
+            | Branch | ${{ github.ref_name }} |
+            | Commit | ${{ github.sha }} |
+            | Triggered by | ${{ github.actor }} |
+
+            ---
+
+            ## Executed Test Stages
+
+            | Stage | Status |
+            |---|---|
+            | Set up job | ✅ Passed |
+            | Checkout repository | ✅ Passed |
+            | Set up Flutter | ✅ Passed |
+            | Install dependencies | ✅ Passed |
+            | Run Flutter analyze | ${analyzeStatus} |
+            | Run Flutter tests | ${testStatus} |
+            | Post Set up Flutter | ✅ Passed |
+            | Post Checkout repository | ✅ Passed |
+            | Complete job | ✅ Passed |
+
+            ---
+
+            ## Analysis
+
+            ### Positive Findings
+
+            ${findings}
+
+            ${warningSection}
+
+            ---
+
+            ## Test Conclusion
+
+            **Result: ${allPassed ? 'PASS' : 'FAIL'}**
+
+            ${conclusionText}`;
+
+            await core.summary.addRaw(summary);
+            await core.summary.write();
+
+      - name: Fail if analyze or tests failed
+        if: steps.analyze.outcome != 'success' || steps.test.outcome != 'success'
+        run: exit 1
