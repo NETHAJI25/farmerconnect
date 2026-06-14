@@ -43,3 +43,19 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Generated scripts
+*.py
+*.js
+node_modules/
+script_part
+*.docx
+*.zip
+nul
+
+# Node.js (not part of Flutter)
+package.json
+package-lock.json
+
+# Generated docs
+UI_UX_SUMMARY.md
